@@ -94,11 +94,20 @@ npx serve .
 │   └── apple-touch-icon.png # iOS Home Screen touch icon
 ├── scripts/
 │   └── generate-icons.py    # Icon generator script
+├── LICENSE                  # MIT License
 └── README.md                # Documentation & User Guide
 ```
 
 ---
 
-## 📄 License
+## ⚖️ Open Source & Disclaimer
 
-MIT License — Free and Open Source.
+- **Open Source**: Licensed under the [MIT License](LICENSE) — free for personal and community use.
+- **Independent Project**: This is an independent open-source project and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with BDJobs.com Ltd.
+- **Intellectual Property**: All trademarks and registered trademarks remain the property of their respective owners. This project contains 100% original code, artwork, and design assets.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the issues page or submit a pull request.
