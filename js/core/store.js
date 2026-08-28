@@ -5,11 +5,25 @@
 
 class AppStore {
   constructor() {
+    let initialAuth = false;
+    let initialUser = '';
+    try {
+      const sessionRaw = sessionStorage.getItem('bd_pwa_auth_session');
+      if (sessionRaw) {
+        const s = JSON.parse(sessionRaw);
+        if (s.authenticated) {
+          initialAuth = true;
+          initialUser = s.user || '';
+        }
+      }
+    } catch (e) {}
+
     this.state = {
       view: 'launchpad',             // 'launchpad' | 'portal' | 'bookmarks'
       portalUrl: 'https://bdjobs.com/h/jobs/',
       pipelineFilter: 'all',         // 'all' | 'saved' | 'applied' | 'interview' | 'offer' | 'archived'
-      isAuthenticated: false,
+      isAuthenticated: initialAuth,
+      currentUser: initialUser,
       isAppLocked: false,
       recentSearches: [],
       savedJobs: [],

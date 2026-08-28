@@ -12,6 +12,20 @@ class BDJobsAuthBridge {
 
   init() {
     window.addEventListener('passkey:login-requested', () => this.handle1TapPasskeyLogin());
+
+    // Subscribe to store updates to sync UI
+    window.appStore?.subscribe((state, prev) => {
+      if (state.isAuthenticated !== prev.isAuthenticated || state.currentUser !== prev.currentUser) {
+        this.renderAuthStatusUI(state);
+      }
+    });
+
+    // Initial render
+    setTimeout(() => {
+      if (window.appStore) {
+        this.renderAuthStatusUI(window.appStore.getState());
+      }
+    }, 50);
   }
 
   /**
@@ -37,8 +51,20 @@ class BDJobsAuthBridge {
         throw new Error('Could not retrieve credentials from vault.');
       }
 
+      // Record authenticated state in reactive store & session
+      window.appStore.setState({
+        isAuthenticated: true,
+        currentUser: creds.username
+      });
+
+      sessionStorage.setItem('bd_pwa_auth_session', JSON.stringify({
+        authenticated: true,
+        user: creds.username,
+        timestamp: Date.now()
+      }));
+
       this.triggerHaptic([30, 50, 30]);
-      this.showToast('Face ID verified! Preparing BDJobs login...', 'success');
+      this.showToast(`Signed in as ${creds.username}! Opening BDJobs...`, 'success');
       this.triggerAutoLogon(creds);
 
     } catch (err) {
@@ -71,6 +97,84 @@ class BDJobsAuthBridge {
   }
 
   /**
+   * Render reactive Auth buttons and Launchpad hero card
+   */
+  renderAuthStatusUI(state) {
+    const headerBtn = document.getElementById('header-auth-btn');
+    const headerText = document.getElementById('header-auth-text');
+    const headerIcon = document.getElementById('header-auth-icon');
+
+    const heroCard = document.getElementById('launchpad-auth-card');
+    const heroTitle = document.getElementById('launchpad-auth-title');
+    const heroSub = document.getElementById('launchpad-auth-sub');
+    const heroBtn = document.getElementById('launchpad-auth-btn');
+
+    if (state.isAuthenticated) {
+      // 1. Update Header Button to Active Profile
+      if (headerBtn) {
+        headerBtn.classList.add('authenticated-active');
+        headerBtn.onclick = () => window.appController.navigateTo(this.MYBDJOBS_HOME);
+      }
+      if (headerText) {
+        headerText.textContent = 'My Profile';
+      }
+      if (headerIcon) {
+        headerIcon.innerHTML = '<circle cx="12" cy="7" r="4"/><path d="M5.5 21a8.38 8.38 0 0 1 13 0"/>';
+      }
+
+      // 2. Update Launchpad Hero Banner
+      if (heroTitle) {
+        heroTitle.innerHTML = `✅ Signed In (${this.escapeHTML(state.currentUser || 'Active')})`;
+      }
+      if (heroSub) {
+        heroSub.textContent = 'Face ID Active • 1-Tap access to applied jobs and profile';
+      }
+      if (heroBtn) {
+        heroBtn.innerHTML = `<span>Open Profile</span>`;
+        heroBtn.onclick = () => window.appController.navigateTo(this.MYBDJOBS_HOME);
+      }
+    } else {
+      // Reset to Sign In
+      if (headerBtn) {
+        headerBtn.classList.remove('authenticated-active');
+        headerBtn.onclick = () => this.handle1TapPasskeyLogin();
+      }
+      if (headerText) {
+        headerText.textContent = 'Face ID Sign In';
+      }
+      if (headerIcon) {
+        headerIcon.innerHTML = '<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>';
+      }
+
+      if (heroTitle) {
+        heroTitle.textContent = '1-Tap Face ID Sign In';
+      }
+      if (heroSub) {
+        heroSub.textContent = 'Biometrically sealed with Apple Secure Enclave & WebAuthn.';
+      }
+      if (heroBtn) {
+        heroBtn.innerHTML = `<span>Sign In</span>`;
+        heroBtn.onclick = () => this.handle1TapPasskeyLogin();
+      }
+    }
+
+    this.refreshUIState();
+  }
+
+  /**
+   * Sign out / Lock Session
+   */
+  signOut() {
+    sessionStorage.removeItem('bd_pwa_auth_session');
+    window.appStore?.setState({
+      isAuthenticated: false,
+      currentUser: ''
+    });
+    this.triggerHaptic(20);
+    this.showToast('Session locked. Tap Face ID to sign in again.', 'info');
+  }
+
+  /**
    * Show floating iOS Credential Autofill Bar 2.0 (Minimizable)
    */
   showFloatingCredentialBar(username, password) {
@@ -94,7 +198,7 @@ class BDJobsAuthBridge {
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
             </svg>
-            <span>Face ID Unlocked</span>
+            <span>Face ID Unlocked (${this.escapeHTML(username)})</span>
           </div>
           <div class="quickfill-controls-right">
             <button class="quickfill-btn-icon" onclick="window.bdjobsAuthBridge.toggleQuickfillMinimize()" title="Minimize">─</button>
@@ -194,6 +298,17 @@ class BDJobsAuthBridge {
 
       await window.passkeyManager.saveEncryptedCredentials(username, password);
 
+      window.appStore?.setState({
+        isAuthenticated: true,
+        currentUser: username
+      });
+
+      sessionStorage.setItem('bd_pwa_auth_session', JSON.stringify({
+        authenticated: true,
+        user: username,
+        timestamp: Date.now()
+      }));
+
       this.triggerHaptic([30, 40, 50]);
       this.showToast('🎉 Passkey linked successfully! 1-Tap Face ID login ready.', 'success');
       this.closeCredentialSetupModal();
@@ -229,33 +344,7 @@ class BDJobsAuthBridge {
   }
 
   showToast(message, type = 'info') {
-    let container = document.getElementById('app-toast-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'app-toast-container';
-      container.className = 'toast-container';
-      document.body.appendChild(container);
-    }
-
-    const toast = document.createElement('div');
-    toast.className = `toast-item toast-${type}`;
-    toast.innerHTML = `
-      <div class="toast-icon">
-        ${type === 'success' ? '✓' : type === 'error' ? '!' : 'ℹ'}
-      </div>
-      <div class="toast-text">${this.escapeHTML(message)}</div>
-    `;
-
-    container.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add('toast-show');
-    }, 10);
-
-    setTimeout(() => {
-      toast.classList.remove('toast-show');
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    window.notificationEngine?.show(message, type);
   }
 
   escapeHTML(str) {
@@ -266,5 +355,4 @@ class BDJobsAuthBridge {
   }
 }
 
-// Export singleton instance
 window.bdjobsAuthBridge = new BDJobsAuthBridge();

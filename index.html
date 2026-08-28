@@ -68,11 +68,11 @@
         </div>
       </div>
       <div class="header-right">
-        <button class="header-btn header-btn-passkey" onclick="window.bdjobsAuthBridge.handle1TapPasskeyLogin()">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+        <button class="header-btn header-btn-passkey" id="header-auth-btn" onclick="window.bdjobsAuthBridge.handle1TapPasskeyLogin()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" id="header-auth-icon">
             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
           </svg>
-          <span>Face ID Sign In</span>
+          <span id="header-auth-text">Face ID Sign In</span>
         </button>
         <button class="header-btn" onclick="openSecuritySettingsModal()" title="Settings & Security">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -126,13 +126,13 @@
           </div>
         </div>
 
-        <!-- Passkey 1-Tap Login Hero Card -->
-        <div class="quick-hub-banner">
+        <!-- Passkey 1-Tap Login Hero Card (Reactive) -->
+        <div class="quick-hub-banner" id="launchpad-auth-card">
           <div class="banner-text">
-            <h3>1-Tap Face ID Sign In</h3>
-            <p>Biometrically sealed with Apple Secure Enclave & WebAuthn.</p>
+            <h3 id="launchpad-auth-title">1-Tap Face ID Sign In</h3>
+            <p id="launchpad-auth-sub">Biometrically sealed with Apple Secure Enclave & WebAuthn.</p>
           </div>
-          <button class="btn btn-sm btn-primary" onclick="window.bdjobsAuthBridge.handle1TapPasskeyLogin()">
+          <button class="btn btn-sm btn-primary" id="launchpad-auth-btn" onclick="window.bdjobsAuthBridge.handle1TapPasskeyLogin()">
             <span>Sign In</span>
           </button>
         </div>
@@ -363,6 +363,9 @@
         </button>
         <button class="btn btn-outline btn-full" onclick="toggleAppLock()">
           <span id="app-lock-toggle-label">🔒 Enable App Lock</span>
+        </button>
+        <button class="btn btn-outline btn-full" style="color: #F87171; border-color: rgba(239, 68, 68, 0.3);" onclick="window.bdjobsAuthBridge.signOut(); closeSecuritySettingsModal();">
+          🚪 Lock / Sign Out Session
         </button>
       </div>
 
