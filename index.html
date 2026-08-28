@@ -329,15 +329,24 @@
   <div id="security-settings-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Security & Passkeys</h3>
+        <h3 class="modal-title">Settings & Security</h3>
         <button class="modal-close" onclick="closeSecuritySettingsModal()">✕</button>
       </div>
 
       <div class="form-group">
         <label class="form-label">Biometric Status</label>
-        <div id="passkey-status-badge" style="font-size: 0.9rem; color: #34D399; margin-bottom: 12px;">
+        <div id="passkey-status-badge" style="font-size: 0.9rem; color: #34D399; margin-bottom: 8px;">
           <span class="status-dot green"></span> Ready
         </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Browsing & Cookie Mode</label>
+        <select id="navigation-mode-select" class="form-select" onchange="changeNavigationMode(this.value)">
+          <option value="direct" selected>🚀 Direct 1st-Party Mode (Fixes Logins & Cookies)</option>
+          <option value="embedded">📋 In-App Embedded Frame</option>
+        </select>
+        <span class="form-hint">Direct mode allows iOS Safari to save BDJobs session cookies, Google sign-in, and auto-fills.</span>
       </div>
 
       <div class="form-group">
@@ -482,7 +491,18 @@
       if (select) {
         select.value = String(settings.autoLockMinutes ?? 5);
       }
+      const navSelect = document.getElementById('navigation-mode-select');
+      if (navSelect) {
+        navSelect.value = settings.directNavigationMode !== false ? 'direct' : 'embedded';
+      }
       window.bdjobsAuthBridge?.refreshUIState();
+    }
+
+    function changeNavigationMode(val) {
+      const settings = window.passkeyManager.getSettings();
+      settings.directNavigationMode = (val === 'direct');
+      window.passkeyManager.saveSettings(settings);
+      window.notificationEngine.show(val === 'direct' ? '🚀 Direct 1st-Party Mode active (Recommended)' : '📋 In-App Embedded Frame active', 'info');
     }
 
     function changeAutoLockTimer(val) {

@@ -1,6 +1,7 @@
 /**
  * BD Career Hub - Practical Passkey Login Bridge (js/auth-bridge.js)
- * Bridges iPhone Face ID / Touch ID Passkeys to BDJobs Authentication.
+ * Bridges iPhone Face ID / Touch ID Passkeys to BDJobs Authentication
+ * with Direct 1st-Party Cookie Navigation & Embedded HUD modes.
  */
 
 class BDJobsAuthBridge {
@@ -31,7 +32,7 @@ class BDJobsAuthBridge {
   /**
    * 1-Tap Biometric Login Flow
    */
-  async handle1TapPasskeyLogin() {
+  async handle1TapPasskeyLogin(forceDirect = false) {
     try {
       if (!window.passkeyManager.hasSavedCredentials()) {
         this.openCredentialSetupModal();
@@ -52,7 +53,7 @@ class BDJobsAuthBridge {
       }
 
       // Record authenticated state in reactive store & session
-      window.appStore.setState({
+      window.appStore?.setState({
         isAuthenticated: true,
         currentUser: creds.username
       });
@@ -64,8 +65,23 @@ class BDJobsAuthBridge {
       }));
 
       this.triggerHaptic([30, 50, 30]);
-      this.showToast(`Signed in as ${creds.username}! Opening BDJobs...`, 'success');
-      this.triggerAutoLogon(creds);
+
+      // Copy password to clipboard for quick paste
+      await this.copyToClipboardSilently(creds.password);
+
+      // Check user preference for direct mode vs embedded mode
+      const settings = window.passkeyManager.getSettings();
+      const preferDirect = forceDirect || settings.directNavigationMode !== false;
+
+      if (preferDirect) {
+        this.showToast(`Face ID verified! Password copied to clipboard. Opening BDJobs...`, 'success', 3000);
+        setTimeout(() => {
+          window.location.href = this.SIGNIN_URL;
+        }, 1000);
+      } else {
+        this.showToast(`Signed in as ${creds.username}! Opening embedded portal...`, 'success');
+        this.triggerAutoLogon(creds);
+      }
 
     } catch (err) {
       console.error('[AuthBridge] Login error:', err);
@@ -74,7 +90,7 @@ class BDJobsAuthBridge {
   }
 
   /**
-   * Execute practical logon into BDJobs
+   * Execute practical logon into BDJobs (Embedded mode)
    */
   triggerAutoLogon(creds) {
     const iframe = document.getElementById('bdjobs-frame');
@@ -104,7 +120,6 @@ class BDJobsAuthBridge {
     const headerText = document.getElementById('header-auth-text');
     const headerIcon = document.getElementById('header-auth-icon');
 
-    const heroCard = document.getElementById('launchpad-auth-card');
     const heroTitle = document.getElementById('launchpad-auth-title');
     const heroSub = document.getElementById('launchpad-auth-sub');
     const heroBtn = document.getElementById('launchpad-auth-btn');
@@ -130,7 +145,7 @@ class BDJobsAuthBridge {
         heroSub.textContent = 'Face ID Active • 1-Tap access to applied jobs and profile';
       }
       if (heroBtn) {
-        heroBtn.innerHTML = `<span>Open Profile</span>`;
+        heroBtn.innerHTML = `<span>Open Dashboard</span>`;
         heroBtn.onclick = () => window.appController.navigateTo(this.MYBDJOBS_HOME);
       }
     } else {
@@ -201,6 +216,7 @@ class BDJobsAuthBridge {
             <span>Face ID Unlocked (${this.escapeHTML(username)})</span>
           </div>
           <div class="quickfill-controls-right">
+            <button class="quickfill-btn-icon" onclick="window.bdjobsAuthBridge.openInDirectMode()" title="Direct Mode (Fix Cookies)">🚀 Direct</button>
             <button class="quickfill-btn-icon" onclick="window.bdjobsAuthBridge.toggleQuickfillMinimize()" title="Minimize">─</button>
             <button class="quickfill-btn-icon" onclick="document.getElementById('ios-passkey-quickfill-bar').remove()" title="Close">✕</button>
           </div>
@@ -244,6 +260,14 @@ class BDJobsAuthBridge {
     }, 120000);
   }
 
+  openInDirectMode() {
+    this.triggerHaptic(20);
+    this.showToast('Switching to Direct 1st-Party Mode (Allows all cookies)...', 'info');
+    setTimeout(() => {
+      window.location.href = this.SIGNIN_URL;
+    }, 600);
+  }
+
   toggleQuickfillMinimize() {
     const bar = document.getElementById('ios-passkey-quickfill-bar');
     if (bar) {
@@ -264,6 +288,19 @@ class BDJobsAuthBridge {
       document.execCommand('copy');
       ta.remove();
       this.showToast(msg, 'success');
+    }
+  }
+
+  async copyToClipboardSilently(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
     }
   }
 
@@ -343,8 +380,8 @@ class BDJobsAuthBridge {
     }
   }
 
-  showToast(message, type = 'info') {
-    window.notificationEngine?.show(message, type);
+  showToast(message, type = 'info', duration = 3500) {
+    window.notificationEngine?.show(message, type, duration);
   }
 
   escapeHTML(str) {
