@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="passkeyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C084FC" />
+    </linearGradient>
+    <linearGradient id="emeraldPasskey" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <filter id="passkeyGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- iOS Face ID / WebAuthn Biometric Frame -->
+  <!-- Top Left Corner -->
+  <path d="M 40 80 L 40 56 C 40 47.16 47.16 40 56 40 L 80 40" fill="none" stroke="url(#passkeyGrad)" stroke-width="12" stroke-linecap="round" />
+  <!-- Top Right Corner -->
+  <path d="M 176 40 L 200 40 C 208.84 40 216 47.16 216 56 L 216 80" fill="none" stroke="url(#passkeyGrad)" stroke-width="12" stroke-linecap="round" />
+  <!-- Bottom Left Corner -->
+  <path d="M 40 176 L 40 200 C 40 208.84 47.16 216 56 216 L 80 216" fill="none" stroke="url(#passkeyGrad)" stroke-width="12" stroke-linecap="round" />
+  <!-- Bottom Right Corner -->
+  <path d="M 176 216 L 200 216 C 208.84 216 216 208.84 216 200 L 216 176" fill="none" stroke="url(#passkeyGrad)" stroke-width="12" stroke-linecap="round" />
+
+  <!-- Face Biometrics Eyes -->
+  <line x1="88" y1="96" x2="88" y2="114" stroke="url(#emeraldPasskey)" stroke-width="10" stroke-linecap="round" />
+  <line x1="168" y1="96" x2="168" y2="114" stroke="url(#emeraldPasskey)" stroke-width="10" stroke-linecap="round" />
+
+  <!-- Nose & Smile Curve -->
+  <path d="M 128 104 L 128 140 L 118 140" fill="none" stroke="url(#emeraldPasskey)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 92 168 C 102 184 154 184 164 168" fill="none" stroke="url(#emeraldPasskey)" stroke-width="10" stroke-linecap="round" />
+
+  <!-- Key Badge Overlay in Bottom Right -->
+  <circle cx="196" cy="196" r="28" fill="#0F172A" stroke="url(#passkeyGrad)" stroke-width="4" />
+  <path d="M 188 196 L 204 196 M 200 196 L 200 204 M 188 196 A 6 6 0 1 1 188 190 A 6 6 0 0 1 188 196" 
+        fill="none" stroke="#38BDF8" stroke-width="3.5" stroke-linecap="round" />
+</svg>

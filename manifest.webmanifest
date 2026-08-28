@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "id": "bd-career-hub-pwa",
+  "name": "BD Career Hub - BDJobs PWA",
+  "short_name": "BD Careers",
+  "description": "Fast, standalone iOS Progressive Web App for BDJobs with biometric Passkey login, search filters, and offline bookmarking.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0B132B",
+  "theme_color": "#0F172A",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Search",
+      "short_name": "Search",
+      "description": "Instant job search with filters",
+      "url": "./#search",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "IT & Software Jobs",
+      "short_name": "IT Jobs",
+      "description": "IT and Telecommunication career openings",
+      "url": "./#cat-it",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bank & Finance Jobs",
+      "short_name": "Bank Jobs",
+      "description": "Banking and Financial institution listings",
+      "url": "./#cat-bank",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Government Jobs",
+      "short_name": "Govt Jobs",
+      "description": "Government circulars and listings",
+      "url": "./#cat-govt",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Passkey Sign In",
+      "short_name": "Passkey",
+      "description": "1-Tap Face ID Biometric Sign In",
+      "url": "./#passkey",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

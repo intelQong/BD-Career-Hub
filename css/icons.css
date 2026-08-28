@@ -1,0 +1,40 @@
+/* ==========================================================
+   BD Career Hub - Icon Utilities & Glyphs (css/icons.css)
+   ========================================================== */
+
+.icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+}
+
+.brand-logo-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.status-dot.green {
+  background-color: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
+
+.status-dot.orange {
+  background-color: #F59E0B;
+  box-shadow: 0 0 8px #F59E0B;
+}
+
+.status-dot.blue {
+  background-color: #38BDF8;
+  box-shadow: 0 0 8px #38BDF8;
+}

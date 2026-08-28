@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0F172A">
+  <title>Offline | BD Career Hub</title>
+  <link rel="stylesheet" href="./css/app.css">
+  <link rel="stylesheet" href="./css/icons.css">
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+</head>
+<body class="offline-body">
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="app-brand-badge">
+          <img src="./icons/favicon.svg" alt="BD Career Hub" class="brand-logo-small">
+          <span class="brand-title">BD Careers</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="status-chip offline-chip">Offline</span>
+      </div>
+    </header>
+
+    <!-- Main Offline Content -->
+    <main class="offline-content">
+      <div class="offline-hero">
+        <div class="offline-icon-wrapper">
+          <svg class="offline-glyph" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+            <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+            <line x1="12" y1="20" x2="12.01" y2="20"></line>
+          </svg>
+        </div>
+        <h2 class="offline-title">No Internet Connection</h2>
+        <p class="offline-subtitle">You are currently offline. Check your Wi-Fi or cellular data, or browse your saved bookmarks below.</p>
+        
+        <button class="btn btn-primary btn-retry" onclick="window.location.reload()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M23 4v6h-6"></path>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>Retry Connection</span>
+        </button>
+      </div>
+
+      <!-- Offline Saved Bookmarks Section -->
+      <section class="offline-bookmarks-card">
+        <div class="section-header-inline">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Saved Jobs (Offline Cache)
+          </h3>
+          <span id="offline-saved-count" class="badge">0</span>
+        </div>
+
+        <div id="offline-bookmarks-list" class="bookmarks-list">
+          <!-- Populated via JS from localStorage -->
+          <div class="empty-state">
+            <p>No saved job bookmarks found in local storage.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Dock Bar -->
+    <nav class="bottom-dock">
+      <a href="./index.html" class="dock-btn active">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span>Home</span>
+      </a>
+      <button class="dock-btn" onclick="window.location.reload()">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span>Reload</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // Load saved bookmarks from localStorage
+    function loadOfflineBookmarks() {
+      try {
+        const raw = localStorage.getItem('bd_saved_jobs') || '[]';
+        const list = JSON.parse(raw);
+        const container = document.getElementById('offline-bookmarks-list');
+        const countEl = document.getElementById('offline-saved-count');
+        countEl.textContent = list.length;
+
+        if (list.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No saved job bookmarks found. Save jobs while online to view them here.</p></div>';
+          return;
+        }
+
+        container.innerHTML = list.map((job, idx) => `
+          <div class="bookmark-item">
+            <div class="bookmark-info">
+              <h4 class="job-title">${escapeHTML(job.title || 'Saved Job Position')}</h4>
+              <p class="company-name">${escapeHTML(job.company || 'Company')}</p>
+              <p class="job-meta">${escapeHTML(job.location || 'Bangladesh')} • Saved on ${escapeHTML(job.date || 'Recent')}</p>
+            </div>
+            <a href="${escapeHTML(job.url)}" class="btn btn-sm btn-outline">Open</a>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Error loading offline bookmarks:', e);
+      }
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    window.addEventListener('DOMContentLoaded', loadOfflineBookmarks);
+    window.addEventListener('online', () => {
+      window.location.href = './index.html';
+    });
+  </script>
+</body>
+</html>

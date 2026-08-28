@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#090D16" />
+    </linearGradient>
+    <linearGradient id="emeraldCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.03" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background Base with iOS Squircle Ratio -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)" />
+  
+  <!-- Subtle Inner Border / Glass Reflection -->
+  <rect x="8" y="8" width="496" height="496" rx="108" fill="none" stroke="url(#glassGrad)" stroke-width="3" />
+
+  <!-- Ambient Glow Behind Icon -->
+  <circle cx="256" cy="270" r="140" fill="#10B981" opacity="0.18" filter="url(#glow)" />
+  <circle cx="256" cy="230" r="100" fill="#06B6D4" opacity="0.15" filter="url(#glow)" />
+
+  <!-- Main Emblem: Modern Geometric Career Briefcase & Search Beacon -->
+  <g filter="url(#softShadow)">
+    <!-- Briefcase Handle -->
+    <path d="M 196 170 C 196 136, 214 116, 256 116 C 298 116, 316 136, 316 170" 
+          fill="none" 
+          stroke="url(#accentGrad)" 
+          stroke-width="22" 
+          stroke-linecap="round" />
+
+    <!-- Briefcase Body (Base Glass Layer) -->
+    <rect x="96" y="165" width="320" height="230" rx="36" fill="#1E293B" stroke="url(#glassGrad)" stroke-width="2" />
+    
+    <!-- Briefcase Front Flap (Gradient) -->
+    <path d="M 96 200 C 96 180, 112 165, 132 165 L 380 165 C 400 165, 416 180, 416 200 L 416 270 C 370 310, 310 325, 256 325 C 202 325, 142 310, 96 270 Z" 
+          fill="url(#emeraldCyan)" />
+          
+    <!-- Dynamic Forward Arrow / North Star Center Badge -->
+    <g transform="translate(256, 280)">
+      <!-- Badge Disc -->
+      <circle cx="0" cy="0" r="44" fill="#0F172A" stroke="url(#accentGrad)" stroke-width="5" />
+      
+      <!-- Growth / Opportunity Compass Star -->
+      <path d="M 0 -26 L 6 -8 L 24 -6 L 10 6 L 14 24 L 0 14 L -14 24 L -10 6 L -24 -6 L -6 -8 Z" 
+            fill="url(#emeraldCyan)" />
+      
+      <circle cx="0" cy="0" r="4" fill="#FFFFFF" />
+    </g>
+
+    <!-- Bottom Accent Trim -->
+    <rect x="156" y="360" width="200" height="8" rx="4" fill="url(#emeraldCyan)" opacity="0.8" />
+  </g>
+</svg>
