@@ -1,7 +1,7 @@
 /**
  * BD Career Hub - WebAuthn Passkey & Biometric Security Engine (js/passkey.js)
- * Implements W3C WebAuthn Level 2/3 Passkeys (Apple Face ID / Touch ID / Platform Authenticator)
- * and AES-256-GCM Web Crypto Credential Vault.
+ * Implements W3C WebAuthn Level 2/3 Passkeys (Apple Face ID / Touch ID),
+ * AES-256-GCM Web Crypto Vault, PIN Fallback, and Auto-Lock Timers.
  */
 
 class PasskeyManager {
@@ -10,6 +10,7 @@ class PasskeyManager {
     this.STORAGE_KEY_SETTINGS = 'bd_pwa_security_settings';
     this.STORAGE_KEY_VAULT = 'bd_pwa_encrypted_vault';
     this.STORAGE_KEY_SESSION = 'bd_pwa_auth_session';
+    this.STORAGE_KEY_PIN = 'bd_pwa_security_pin_hash';
     
     this.isSupported = this.checkSupport();
   }
@@ -43,9 +44,10 @@ class PasskeyManager {
     }
     return {
       appLockEnabled: false,
-      autoLockMinutes: 5,
+      autoLockMinutes: 5, // 0 = Immediately, 1, 5, 15, -1 = Never
       passkeyLoginEnabled: false,
       privacyBlurEnabled: true,
+      pinFallbackEnabled: false,
       lastActiveTimestamp: Date.now()
     };
   }
@@ -69,9 +71,9 @@ class PasskeyManager {
   }
 
   /**
-   * Register a new Passkey with Apple Face ID / Touch ID / Platform Authenticator
+   * Register a new Passkey with Apple Face ID / Touch ID
    */
-  async registerPasskey(nickname = 'My iPhone (Face ID)') {
+  async registerPasskey(nickname = 'iPhone 11 (Face ID)') {
     if (!this.isSupported) {
       throw new Error('WebAuthn Passkeys are not supported in this browser.');
     }
@@ -79,10 +81,9 @@ class PasskeyManager {
     const userId = crypto.getRandomValues(new Uint8Array(16));
     const challenge = crypto.getRandomValues(new Uint8Array(32));
 
-    // Get current RP ID (domain) or undefined for localhost/IP
     let rpId = window.location.hostname;
     if (rpId === 'localhost' || rpId === '127.0.0.1') {
-      rpId = undefined; // allow localhost
+      rpId = undefined;
     }
 
     const publicKeyOptions = {
@@ -101,7 +102,7 @@ class PasskeyManager {
         { type: 'public-key', alg: -257 }  // RS256
       ],
       authenticatorSelection: {
-        authenticatorAttachment: 'platform', // Enforce Apple Face ID / Touch ID
+        authenticatorAttachment: 'platform', // Enforce Apple Face ID
         userVerification: 'required',
         residentKey: 'preferred',
         requireResidentKey: false
@@ -110,7 +111,7 @@ class PasskeyManager {
       attestation: 'none'
     };
 
-    console.log('[Passkey] Triggering biometric registration...');
+    console.log('[Passkey] Registering Face ID credential...');
     const credential = await navigator.credentials.create({
       publicKey: publicKeyOptions
     });
@@ -132,7 +133,6 @@ class PasskeyManager {
     passkeys.push(passkeyRecord);
     this.savePasskeys(passkeys);
 
-    // Also update settings
     const settings = this.getSettings();
     settings.passkeyLoginEnabled = true;
     this.saveSettings(settings);
@@ -141,9 +141,9 @@ class PasskeyManager {
   }
 
   /**
-   * Authenticate / Assert with Passkey (Face ID / Touch ID)
+   * Authenticate / Assert with Passkey (Face ID)
    */
-  async authenticatePasskey(reason = 'Verify your identity with Face ID / Passkey') {
+  async authenticatePasskey(reason = 'Verify your identity with Face ID') {
     if (!this.isSupported) {
       throw new Error('WebAuthn Passkeys are not supported on this device.');
     }
@@ -170,7 +170,7 @@ class PasskeyManager {
       timeout: 60000
     };
 
-    console.log('[Passkey] Requesting biometric assertion:', reason);
+    console.log('[Passkey] Triggering biometric prompt:', reason);
     const assertion = await navigator.credentials.get({
       publicKey: publicKeyOptions
     });
@@ -192,20 +192,44 @@ class PasskeyManager {
     };
   }
 
-  /**
-   * Delete a registered passkey
-   */
-  deletePasskey(id) {
-    let passkeys = this.getPasskeys();
-    passkeys = passkeys.filter(pk => pk.id !== id);
-    this.savePasskeys(passkeys);
-    
-    if (passkeys.length === 0) {
-      const settings = this.getSettings();
-      settings.appLockEnabled = false;
-      settings.passkeyLoginEnabled = false;
-      this.saveSettings(settings);
+  /* ==========================================================
+     PIN Security Fallback
+     ========================================================== */
+  async setSecurityPIN(pinString) {
+    if (!pinString || pinString.length < 4) {
+      throw new Error('PIN must be at least 4 digits');
     }
+    const enc = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', enc.encode('bd-pin-' + pinString));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem(this.STORAGE_KEY_PIN, hashHex);
+
+    const settings = this.getSettings();
+    settings.pinFallbackEnabled = true;
+    this.saveSettings(settings);
+    return true;
+  }
+
+  async verifySecurityPIN(pinString) {
+    const storedHash = localStorage.getItem(this.STORAGE_KEY_PIN);
+    if (!storedHash) return false;
+
+    const enc = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', enc.encode('bd-pin-' + pinString));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    if (hashHex === storedHash) {
+      sessionStorage.setItem(this.STORAGE_KEY_SESSION, JSON.stringify({
+        authenticated: true,
+        timestamp: Date.now()
+      }));
+      return true;
+    }
+    return false;
+  }
+
+  hasPIN() {
+    return !!localStorage.getItem(this.STORAGE_KEY_PIN);
   }
 
   /* ==========================================================
@@ -237,9 +261,6 @@ class PasskeyManager {
     );
   }
 
-  /**
-   * Save BDJobs credentials encrypted with AES-256
-   */
   async saveEncryptedCredentials(username, password) {
     if (!localStorage.getItem('bd_pwa_vault_salt')) {
       const newSalt = this.bufferToBase64(crypto.getRandomValues(new Uint8Array(16)));
@@ -267,9 +288,6 @@ class PasskeyManager {
     return vaultData;
   }
 
-  /**
-   * Decrypt BDJobs credentials after Passkey biometric validation
-   */
   async getDecryptedCredentials() {
     const rawVault = localStorage.getItem(this.STORAGE_KEY_VAULT);
     if (!rawVault) return null;
@@ -300,7 +318,7 @@ class PasskeyManager {
   // Check if App Lock is currently triggering
   isAppLocked() {
     const settings = this.getSettings();
-    if (!settings.appLockEnabled || this.getPasskeys().length === 0) {
+    if (!settings.appLockEnabled || (this.getPasskeys().length === 0 && !this.hasPIN())) {
       return false;
     }
 
@@ -311,6 +329,14 @@ class PasskeyManager {
       if (!session.authenticated) return true;
 
       // Check auto-lock timer
+      if (settings.autoLockMinutes === 0) {
+        // Immediate lock on every return
+        return false; // Handled by visibilitychange
+      } else if (settings.autoLockMinutes === -1) {
+        // Never auto-lock during session
+        return false;
+      }
+
       const now = Date.now();
       const maxAgeMs = (settings.autoLockMinutes || 5) * 60 * 1000;
       if (now - session.timestamp > maxAgeMs) {

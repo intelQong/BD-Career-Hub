@@ -7,7 +7,7 @@
   <!-- Primary Meta Tags -->
   <title>BD Career Hub - BDJobs PWA</title>
   <meta name="title" content="BD Career Hub - BDJobs PWA">
-  <meta name="description" content="Fast, standalone iOS Progressive Web App for BDJobs with Face ID biometric Passkey login, search filters, and offline bookmarking.">
+  <meta name="description" content="Fast, standalone iOS Progressive Web App for BDJobs with Face ID biometric Passkey login, search filters, application pipeline, and offline bookmarking.">
 
   <!-- Apple iOS Standalone PWA Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -31,6 +31,9 @@
   <link rel="stylesheet" href="./css/icons.css">
 </head>
 <body>
+  <!-- Top Animated Loading Bar -->
+  <div id="top-progress-bar" class="top-progress-bar"></div>
+
   <!-- Passkey Biometric App Lock Screen Overlay -->
   <div id="passkey-lock-screen" class="passkey-lock-screen hidden">
     <div class="biometric-scanner-orb" onclick="window.appController.unlockAppWithPasskey()">
@@ -44,9 +47,15 @@
     </div>
     <h2 class="lock-title">BD Career Hub Locked</h2>
     <p class="lock-subtitle">Authenticate with Apple Face ID or Passkey to access your career portal.</p>
-    <button class="btn btn-primary" onclick="window.appController.unlockAppWithPasskey()">
-      <span>Unlock with Face ID</span>
-    </button>
+    
+    <div style="display: flex; gap: 10px; flex-direction: column; width: 100%; max-width: 280px;">
+      <button class="btn btn-primary btn-full" onclick="window.appController.unlockAppWithPasskey()">
+        <span>Unlock with Face ID</span>
+      </button>
+      <button class="btn btn-outline btn-full btn-sm" onclick="promptPINUnlock()">
+        <span>Use Security PIN</span>
+      </button>
+    </div>
   </div>
 
   <div class="app-container">
@@ -65,7 +74,7 @@
           </svg>
           <span>Face ID Sign In</span>
         </button>
-        <button class="header-btn" onclick="openSecuritySettingsModal()" title="Security & Passkeys">
+        <button class="header-btn" onclick="openSecuritySettingsModal()" title="Settings & Security">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -78,11 +87,11 @@
     <main class="main-viewport">
       <!-- 1. Launchpad View -->
       <section id="launchpad-view" class="view-section launchpad-container">
-        <!-- iOS Installation Guide Banner (Shows when in regular Safari) -->
+        <!-- iOS Installation Guide Banner -->
         <div id="ios-install-banner" class="ios-install-banner hidden">
           <div class="install-text">
             <h4>Install as iPhone App</h4>
-            <p>Tap the <strong>Share</strong> button <span style="font-size:1.1rem;">􀈂</span> below and select <strong>"Add to Home Screen"</strong></p>
+            <p>Tap <strong>Share</strong> 􀈂 below and select <strong>"Add to Home Screen"</strong></p>
           </div>
           <button class="btn btn-sm btn-outline" onclick="window.pwaLifecycle.showInstallGuideModal()">Guide</button>
         </div>
@@ -97,11 +106,23 @@
             <input type="text" id="global-search-input" class="main-search-input" placeholder="Search by title, skill, company (e.g. Software, Bank)...">
           </div>
           
+          <!-- Recent Searches List -->
+          <div id="recent-searches-list" class="recent-searches-row"></div>
+
+          <!-- Quick Filters -->
+          <div class="filter-group-title">Timing & Type</div>
           <div class="search-filter-pills">
             <button class="filter-pill active" data-filter="all">All Jobs</button>
             <button class="filter-pill" data-filter="today">🔥 New Today</button>
             <button class="filter-pill" data-filter="deadline">⏳ Deadline Tomorrow</button>
             <button class="filter-pill" data-filter="fresher">🎓 Freshers</button>
+          </div>
+
+          <div class="filter-group-title">Location & Level</div>
+          <div class="search-filter-pills">
+            <button class="filter-pill" data-filter="dhaka">📍 Dhaka</button>
+            <button class="filter-pill" data-filter="chattogram">📍 Chattogram</button>
+            <button class="filter-pill" data-filter="senior">💼 Senior (5+ yrs)</button>
           </div>
         </div>
 
@@ -171,6 +192,13 @@
             📋 Main Job Board
           </button>
         </div>
+
+        <!-- Footer Notice -->
+        <div style="text-align: center; padding-top: 12px;">
+          <button class="btn btn-sm btn-outline" style="font-size: 0.76rem; border: none; color: #64748B;" onclick="openAboutModal()">
+            ⚖️ About & Open Source Legal Notice
+          </button>
+        </div>
       </section>
 
       <!-- 2. Smart Embedded Portal View (BDJobs Live Webview) -->
@@ -182,12 +210,23 @@
         <iframe id="bdjobs-frame" class="bdjobs-iframe" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="clipboard-read; clipboard-write"></iframe>
       </section>
 
-      <!-- 3. Saved Jobs Bookmarks View -->
+      <!-- 3. Saved Jobs Bookmarks & Application Tracker View -->
       <section id="bookmarks-view" class="view-section launchpad-container hidden">
-        <div class="section-header-inline" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h2 style="font-size: 1.3rem; font-weight: 700;">Saved Bookmarks</h2>
+        <div class="section-header-inline" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-size: 1.3rem; font-weight: 700;">Career Pipeline</h2>
           <span class="badge" id="saved-badge-count">0</span>
         </div>
+
+        <!-- Pipeline Status Tabs -->
+        <div class="pipeline-tabs">
+          <button class="pipeline-tab active" id="tab-all" onclick="window.appController.filterPipelineTab('all')">All</button>
+          <button class="pipeline-tab" id="tab-saved" onclick="window.appController.filterPipelineTab('saved')">📁 Saved</button>
+          <button class="pipeline-tab" id="tab-applied" onclick="window.appController.filterPipelineTab('applied')">📝 Applied</button>
+          <button class="pipeline-tab" id="tab-interview" onclick="window.appController.filterPipelineTab('interview')">💬 Interview</button>
+          <button class="pipeline-tab" id="tab-offer" onclick="window.appController.filterPipelineTab('offer')">🎉 Offer</button>
+          <button class="pipeline-tab" id="tab-archived" onclick="window.appController.filterPipelineTab('archived')">📦 Archived</button>
+        </div>
+
         <div id="bookmarks-list-container" class="bookmarks-list">
           <!-- Populated by app.js -->
         </div>
@@ -215,7 +254,7 @@
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
-        <span>Saved</span>
+        <span>Pipeline</span>
       </button>
 
       <button class="dock-btn" onclick="window.appController.goBack()" title="Back">
@@ -229,7 +268,7 @@
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
         </svg>
-        <span>Bookmark</span>
+        <span>Save</span>
       </button>
 
       <button class="dock-btn" onclick="window.appController.shareCurrent()" title="Share">
@@ -266,7 +305,7 @@
         <button class="modal-close" onclick="window.bdjobsAuthBridge.closeCredentialSetupModal()">✕</button>
       </div>
       <p style="font-size: 0.85rem; color: #94A3B8; margin-bottom: 16px; line-height: 1.45;">
-        Save your MyBdjobs login once. It will be encrypted locally on your iPhone with AES-256 and sealed with Apple Face ID / Touch ID.
+        Save your MyBdjobs login once. It will be encrypted locally on your iPhone with AES-256 and sealed with Apple Face ID.
       </p>
 
       <form id="passkey-enroll-form" onsubmit="event.preventDefault(); submitPasskeyEnroll();">
@@ -286,7 +325,7 @@
     </div>
   </div>
 
-  <!-- 2. Security & Passkey Management Modal -->
+  <!-- 2. Security & Passkey Settings Modal -->
   <div id="security-settings-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
@@ -301,6 +340,17 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">Auto-Lock Timer</label>
+        <select id="auto-lock-select" class="form-select" onchange="changeAutoLockTimer(this.value)">
+          <option value="0">Immediately on Leaving App</option>
+          <option value="1">After 1 Minute</option>
+          <option value="5" selected>After 5 Minutes</option>
+          <option value="15">After 15 Minutes</option>
+          <option value="-1">Never</option>
+        </select>
+      </div>
+
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
         <button class="btn btn-outline btn-full" onclick="window.bdjobsAuthBridge.openCredentialSetupModal(); closeSecuritySettingsModal();">
           🔑 Update BDJobs Credentials
@@ -308,18 +358,48 @@
         <button class="btn btn-outline btn-full" onclick="testFaceIDBiometrics()">
           🔍 Test Face ID / Passkey
         </button>
+        <button class="btn btn-outline btn-full" onclick="enrollPINFallback()">
+          🔢 Setup Security PIN Fallback
+        </button>
         <button class="btn btn-outline btn-full" onclick="toggleAppLock()">
           <span id="app-lock-toggle-label">🔒 Enable App Lock</span>
         </button>
       </div>
 
       <p class="form-hint" style="text-align: center;">
-        BD Career Hub PWA v1.0.0 • Open Source iOS Client
+        BD Career Hub PWA v1.1.0 • Open Source iOS Client
       </p>
     </div>
   </div>
 
-  <!-- 3. iOS Installation Guide Modal -->
+  <!-- 3. About & Open Source Legal Notice Modal -->
+  <div id="about-legal-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">About BD Career Hub</h3>
+        <button class="modal-close" onclick="closeAboutModal()">✕</button>
+      </div>
+      <div style="font-size: 0.88rem; color: #CBD5E1; line-height: 1.6; display: flex; flex-direction: column; gap: 12px;">
+        <p><strong>BD Career Hub</strong> is a free, independent, open-source Progressive Web App designed to provide a fast, standalone iOS experience for job seekers.</p>
+        
+        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px;">
+          <h4 style="font-size: 0.82rem; color: #38BDF8; margin-bottom: 4px; text-transform: uppercase;">Legal Notice & Disclaimer</h4>
+          <p style="font-size: 0.78rem; color: #94A3B8;">
+            This application is an independent client wrapper and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with BDJobs.com Ltd. All trademarks and brand names are the property of their respective owners.
+          </p>
+        </div>
+
+        <p style="font-size: 0.82rem; color: #94A3B8;">
+          ⚖️ Released under the <strong>MIT License</strong>. Zero tracking, zero ads, 100% client-side security.
+        </p>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top: 16px;" onclick="closeAboutModal()">
+        Understood
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. iOS Installation Guide Modal -->
   <div id="install-guide-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
@@ -341,7 +421,7 @@
         </div>
         <div style="display: flex; gap: 12px; align-items: flex-start;">
           <span style="background: #38BDF8; color: #041014; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</span>
-          <span>Tap <strong>Add</strong> in the top-right corner. The app will now launch full-screen!</span>
+          <span>Tap <strong>Add</strong> in the top-right corner. The app will launch full-screen!</span>
         </div>
       </div>
       <button class="btn btn-primary btn-full" style="margin-top: 20px;" onclick="window.pwaLifecycle.closeInstallGuideModal()">
@@ -357,7 +437,6 @@
   <script src="./js/pwa.js"></script>
 
   <script>
-    // Modal Helpers
     function openSecuritySettingsModal() {
       const modal = document.getElementById('security-settings-modal');
       if (modal) {
@@ -371,22 +450,42 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    function openAboutModal() {
+      const modal = document.getElementById('about-legal-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAboutModal() {
+      const modal = document.getElementById('about-legal-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     function updateSettingsUI() {
       const settings = window.passkeyManager.getSettings();
       const label = document.getElementById('app-lock-toggle-label');
       if (label) {
         label.textContent = settings.appLockEnabled ? '🔓 Disable App Lock' : '🔒 Enable Face ID App Lock';
       }
+      const select = document.getElementById('auto-lock-select');
+      if (select) {
+        select.value = String(settings.autoLockMinutes ?? 5);
+      }
       window.bdjobsAuthBridge?.refreshUIState();
+    }
+
+    function changeAutoLockTimer(val) {
+      const settings = window.passkeyManager.getSettings();
+      settings.autoLockMinutes = parseInt(val, 10);
+      window.passkeyManager.saveSettings(settings);
+      window.bdjobsAuthBridge?.showToast('Auto-lock timer updated', 'info');
     }
 
     async function toggleAppLock() {
       const settings = window.passkeyManager.getSettings();
       if (!settings.appLockEnabled) {
-        // Enrolling app lock
         try {
           if (window.passkeyManager.getPasskeys().length === 0) {
-            await window.passkeyManager.registerPasskey('iPhone Face ID');
+            await window.passkeyManager.registerPasskey('iPhone 11 Face ID');
           }
           settings.appLockEnabled = true;
           window.passkeyManager.saveSettings(settings);
@@ -400,6 +499,21 @@
         window.bdjobsAuthBridge?.showToast('App Lock disabled', 'info');
       }
       updateSettingsUI();
+    }
+
+    async function enrollPINFallback() {
+      const pin = prompt('Enter a 4 to 6-digit security PIN for Face ID backup:');
+      if (pin && pin.length >= 4) {
+        await window.passkeyManager.setSecurityPIN(pin);
+        window.bdjobsAuthBridge?.showToast('Security PIN configured successfully', 'success');
+      }
+    }
+
+    function promptPINUnlock() {
+      const pin = prompt('Enter your Security PIN:');
+      if (pin) {
+        window.appController.submitPINFallback(pin);
+      }
     }
 
     async function testFaceIDBiometrics() {

@@ -59,13 +59,37 @@ html, body {
 }
 
 /* ==========================================================
-   Header Bar (iOS Glassmorphism with Dynamic Island padding)
+   Top Loading Progress Bar (Animated)
+   ========================================================== */
+.top-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--primary-gradient);
+  z-index: 2000;
+  transition: width 0.3s ease, opacity 0.3s;
+  box-shadow: 0 0 10px #34D399;
+}
+
+.top-progress-bar.active {
+  width: 75%;
+}
+
+.top-progress-bar.done {
+  width: 100%;
+  opacity: 0;
+}
+
+/* ==========================================================
+   Header Bar (iOS Glassmorphism with Notch / Dynamic Island)
    ========================================================== */
 .app-header {
   width: 100%;
   padding-top: var(--safe-top);
   height: calc(var(--safe-top) + 52px);
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(15, 23, 42, 0.84);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--border-glass);
@@ -205,6 +229,49 @@ html, body {
 .main-search-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+/* Recent Search Chips */
+.recent-searches-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.recent-searches-row::-webkit-scrollbar { display: none; }
+
+.recent-label {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.recent-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 0.76rem;
+  color: #CBD5E1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.recent-chip:active {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+}
+
+/* Filter Groups (Timing, Location, Experience) */
+.filter-group-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+  margin-top: 10px;
 }
 
 .search-filter-pills {
@@ -411,13 +478,13 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 8px 10px;
   font-size: 0.72rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 12px;
-  min-width: 54px;
+  min-width: 50px;
 }
 
 .dock-btn svg {
@@ -511,40 +578,107 @@ html, body {
   width: 100%;
 }
 
-/* Bookmarks List */
+/* ==========================================================
+   Application Pipeline & Bookmarks with Notes
+   ========================================================== */
+.pipeline-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+.pipeline-tabs::-webkit-scrollbar { display: none; }
+
+.pipeline-tab {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pipeline-tab.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38BDF8;
+  color: #38BDF8;
+}
+
 .bookmarks-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
 }
 
 .bookmark-item {
   background: var(--bg-card);
   border: 1px solid var(--border-glass);
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 18px;
+  padding: 16px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 12px;
 }
 
+.bookmark-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .job-title {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: var(--text-main);
   margin-bottom: 2px;
 }
 
 .company-name {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: #38BDF8;
 }
 
 .job-meta {
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   color: var(--text-sub);
+}
+
+/* Status Badges */
+.status-tag-select {
+  background: #0F172A;
+  color: #34D399;
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.job-note-box {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  color: #CBD5E1;
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+}
+
+.bookmark-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
 }
 
 .badge {

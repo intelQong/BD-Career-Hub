@@ -11,7 +11,6 @@ class BDJobsAuthBridge {
   }
 
   init() {
-    // Listen for custom passkey events
     window.addEventListener('passkey:login-requested', () => this.handle1TapPasskeyLogin());
   }
 
@@ -19,16 +18,13 @@ class BDJobsAuthBridge {
    * 1-Tap Biometric Login Flow
    */
   async handle1TapPasskeyLogin() {
-    const feedbackEl = document.getElementById('passkey-feedback-msg');
-    
     try {
-      // Step 1: Check if credentials exist in vault
       if (!window.passkeyManager.hasSavedCredentials()) {
         this.openCredentialSetupModal();
         return;
       }
 
-      // Step 2: Trigger iPhone Face ID / Touch ID prompt
+      this.triggerHaptic(20);
       this.showToast('Authenticating with Face ID...', 'info');
       const authResult = await window.passkeyManager.authenticatePasskey('Unlock BDJobs Sign In');
 
@@ -36,13 +32,12 @@ class BDJobsAuthBridge {
         throw new Error('Biometric verification cancelled.');
       }
 
-      // Step 3: Decrypt credentials securely
       const creds = await window.passkeyManager.getDecryptedCredentials();
       if (!creds || !creds.username || !creds.password) {
         throw new Error('Could not retrieve credentials from vault.');
       }
 
-      // Step 4: Dispatch login to BDJobs
+      this.triggerHaptic([30, 50, 30]);
       this.showToast('Face ID verified! Preparing BDJobs login...', 'success');
       this.triggerAutoLogon(creds);
 
@@ -56,28 +51,27 @@ class BDJobsAuthBridge {
    * Execute practical logon into BDJobs
    */
   triggerAutoLogon(creds) {
-    // Check if smart frame exists
     const iframe = document.getElementById('bdjobs-frame');
     const container = document.getElementById('portal-view');
     const hub = document.getElementById('launchpad-view');
 
-    // Switch view to smart portal
     if (hub && container) {
       hub.classList.add('hidden');
       container.classList.remove('hidden');
     }
 
-    // Set frame destination to MyBDJobs Sign In
     if (iframe) {
+      if (window.appController) {
+        window.appController.startProgressBar();
+      }
       iframe.src = this.SIGNIN_URL;
     }
 
-    // Show the floating Apple-style Quick-Fill Bar with 1-tap paste chips
     this.showFloatingCredentialBar(creds.username, creds.password);
   }
 
   /**
-   * Show floating iOS Credential Autofill Bar over the webview
+   * Show floating iOS Credential Autofill Bar 2.0 (Minimizable)
    */
   showFloatingCredentialBar(username, password) {
     let bar = document.getElementById('ios-passkey-quickfill-bar');
@@ -89,6 +83,11 @@ class BDJobsAuthBridge {
     }
 
     bar.innerHTML = `
+      <div class="minimized-bubble-icon" onclick="window.bdjobsAuthBridge.toggleQuickfillMinimize()">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+        </svg>
+      </div>
       <div class="quickfill-content">
         <div class="quickfill-header">
           <div class="quickfill-badge">
@@ -97,7 +96,10 @@ class BDJobsAuthBridge {
             </svg>
             <span>Face ID Unlocked</span>
           </div>
-          <button class="quickfill-close" onclick="document.getElementById('ios-passkey-quickfill-bar').remove()">✕</button>
+          <div class="quickfill-controls-right">
+            <button class="quickfill-btn-icon" onclick="window.bdjobsAuthBridge.toggleQuickfillMinimize()" title="Minimize">─</button>
+            <button class="quickfill-btn-icon" onclick="document.getElementById('ios-passkey-quickfill-bar').remove()" title="Close">✕</button>
+          </div>
         </div>
         <div class="quickfill-actions">
           <button class="btn btn-sm btn-quickfill" id="btn-copy-user">
@@ -107,33 +109,43 @@ class BDJobsAuthBridge {
             <span>Copy Password</span>
           </button>
           <button class="btn btn-sm btn-primary" id="btn-done-login">
-            <span>Open Dashboard</span>
+            <span>Dashboard</span>
           </button>
         </div>
       </div>
     `;
 
+    bar.classList.remove('minimized');
     bar.classList.add('visible');
 
-    // Attach copy actions
     document.getElementById('btn-copy-user').onclick = () => {
-      this.copyToClipboard(username, 'Username copied to clipboard! Paste into the user field.');
+      this.triggerHaptic(15);
+      this.copyToClipboard(username, 'Username copied to clipboard! Tap user field and paste.');
     };
     document.getElementById('btn-copy-pass').onclick = () => {
-      this.copyToClipboard(password, 'Password copied to clipboard! Paste into the password field.');
+      this.triggerHaptic(15);
+      this.copyToClipboard(password, 'Password copied to clipboard! Tap password field and paste.');
     };
     document.getElementById('btn-done-login').onclick = () => {
+      this.triggerHaptic(25);
       const iframe = document.getElementById('bdjobs-frame');
       if (iframe) iframe.src = this.MYBDJOBS_HOME;
       bar.remove();
     };
 
-    // Auto dismiss after 90 seconds for security
     setTimeout(() => {
       if (bar && bar.parentNode) {
         bar.remove();
       }
-    }, 90000);
+    }, 120000);
+  }
+
+  toggleQuickfillMinimize() {
+    const bar = document.getElementById('ios-passkey-quickfill-bar');
+    if (bar) {
+      this.triggerHaptic(15);
+      bar.classList.toggle('minimized');
+    }
   }
 
   async copyToClipboard(text, msg) {
@@ -141,7 +153,6 @@ class BDJobsAuthBridge {
       await navigator.clipboard.writeText(text);
       this.showToast(msg, 'success');
     } catch (e) {
-      // Fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       document.body.appendChild(ta);
@@ -152,9 +163,6 @@ class BDJobsAuthBridge {
     }
   }
 
-  /**
-   * Open Credential Setup / Enrollment Modal
-   */
   openCredentialSetupModal() {
     const modal = document.getElementById('passkey-setup-modal');
     if (modal) {
@@ -171,9 +179,6 @@ class BDJobsAuthBridge {
     }
   }
 
-  /**
-   * Save credentials and register passkey in one seamless step
-   */
   async handleSaveAndEnroll(username, password) {
     if (!username || !password) {
       this.showToast('Please enter your BDJobs username and password', 'error');
@@ -183,14 +188,13 @@ class BDJobsAuthBridge {
     try {
       this.showToast('Registering Face ID Passkey...', 'info');
 
-      // Check if user already has a passkey registered
       if (window.passkeyManager.getPasskeys().length === 0) {
-        await window.passkeyManager.registerPasskey('iPhone Face ID');
+        await window.passkeyManager.registerPasskey('iPhone 11 (Face ID)');
       }
 
-      // Save encrypted credentials
       await window.passkeyManager.saveEncryptedCredentials(username, password);
 
+      this.triggerHaptic([30, 40, 50]);
       this.showToast('🎉 Passkey linked successfully! 1-Tap Face ID login ready.', 'success');
       this.closeCredentialSetupModal();
       this.refreshUIState();
@@ -213,6 +217,14 @@ class BDJobsAuthBridge {
       } else {
         badge.innerHTML = '<span class="status-dot orange"></span> Not Configured';
       }
+    }
+  }
+
+  triggerHaptic(pattern = 15) {
+    if (navigator.vibrate) {
+      try {
+        navigator.vibrate(pattern);
+      } catch (e) {}
     }
   }
 

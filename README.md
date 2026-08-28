@@ -2,7 +2,7 @@
 
 A modern, high-performance Progressive Web App (PWA) client tailored for iPhone / iOS to browse, search, and manage **BDJobs** without opening Safari manually every single time.
 
-Designed according to **Apple Human Interface Guidelines (HIG)** with full-screen standalone mode, notch / dynamic island safe-area padding, on-screen iOS navigation controls, offline bookmarks caching, and a **practical WebAuthn Passkey (Apple Face ID / Touch ID) 1-Tap Login Bridge**.
+Designed according to **Apple Human Interface Guidelines (HIG)** with full-screen standalone mode, notch / dynamic island safe-area padding, on-screen iOS navigation controls, an **offline Application Pipeline with private notes**, and a **practical WebAuthn Passkey (Apple Face ID / Touch ID) 1-Tap Login Bridge**.
 
 > [!NOTE]
 > **100% Original & Copyright-Free**: This project uses 100% custom-designed vector branding, original geometric emblems, and zero copyrighted logos or proprietary assets from BDJobs.
@@ -11,18 +11,23 @@ Designed according to **Apple Human Interface Guidelines (HIG)** with full-scree
 
 ## ✨ Features
 
-- 📱 **Native iOS Standalone Experience**: Runs full-screen with no Safari URL bar or browser chrome when added to your iPhone Home Screen.
-- 🏝️ **Notch & Dynamic Island Support**: Calibrated with `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)`.
+- 📱 **Native iOS Standalone Experience**: Runs full-screen with zero browser chrome when added to your iPhone Home Screen.
+- 🏝️ **iPhone 11 & Notch / Dynamic Island Calibrated**: Optimized with `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)`.
 - 🔑 **Practical Passkey & Face ID Login Bridge**:
   - Encrypts your BDJobs login locally with military-grade `AES-256-GCM` via the Web Crypto API.
   - One-tap sign-in into BDJobs using native Apple Face ID / Touch ID via W3C WebAuthn (`navigator.credentials`).
-  - Zero external servers: all credentials and keys stay 100% inside your iPhone's Apple Secure Enclave & local sandbox.
-- 🧭 **Dedicated On-Screen iOS Navigation**:
-  - Integrated on-screen Back, Forward, Refresh, Share, and Bookmark controls (crucial for standalone iOS webviews!).
-- 🔍 **Instant Search & Category Launchpad**:
-  - Direct filter hubs for *IT & Telecom*, *Banking & Finance*, *Government Circulars*, *NGO / Development*, *Garments / Textile*, *Engineering*, *Remote Jobs*, and *Hot Jobs*.
-- 💾 **Offline Caching & Saved Bookmarks**:
-  - Save job circulars to local storage with one tap and review them anytime — even when offline or traveling with no network connectivity.
+  - **Minimizable Floating Face ID HUD**: The quick-fill widget collapses into a discrete biometric floating bubble over the webview.
+  - **Security PIN Backup**: Optional 4-6 digit local PIN fallback if Face ID is unavailable.
+  - **Custom Auto-Lock**: Choose between *Immediate*, *1 min*, *5 min*, *15 min*, or *Never*.
+- 💼 **Career Pipeline & Private Notes (Offline)**:
+  - Track jobs across 5 stages: **Saved** ➔ **Applied** ➔ **Interview** ➔ **Offer** ➔ **Archived**.
+  - Add private encrypted notes (interview dates, contacts, expected salary) to any listing.
+- 🔍 **Instant Multi-Filter Search & History**:
+  - **Recent Searches**: Remembers your recent searches for instant 1-tap re-queries.
+  - **Location & Experience Pills**: One-tap filters for *Dhaka*, *Chattogram*, *Freshers*, *Senior (5+ yrs)*, *New Today*, and *Deadline Tomorrow*.
+- 🧭 **Dedicated On-Screen iOS Navigation & Haptics**:
+  - Integrated on-screen Back, Forward, Refresh, Share, and Save controls with native iOS vibration haptics.
+  - Animated top loading progress bar when loading job circulars.
 
 ---
 
@@ -77,12 +82,12 @@ npx serve .
 ├── offline.html             # Offline fallback page with saved jobs viewer
 ├── css/
 │   ├── app.css              # iOS Native HIG styling, glassmorphism & safe areas
-│   ├── passkey.css          # Apple Face ID biometric sheet & quickfill bar
+│   ├── passkey.css          # Apple Face ID biometric sheet, PIN pad & HUD 2.0
 │   └── icons.css            # Icon helper classes
 ├── js/
-│   ├── app.js               # Standalone navigation controller, search & bookmarks
-│   ├── passkey.js           # WebAuthn Passkey engine & AES-256 Crypto Vault
-│   ├── auth-bridge.js       # Practical 1-Tap Passkey Login Bridge
+│   ├── app.js               # Standalone navigation, search history & application pipeline
+│   ├── passkey.js           # WebAuthn Passkey engine, PIN fallback & AES-256 Vault
+│   ├── auth-bridge.js       # Practical 1-Tap Passkey Login Bridge (Minimizable HUD)
 │   └── pwa.js               # Service Worker & iOS installation lifecycle
 ├── icons/
 │   ├── favicon.svg          # Original vector icon
