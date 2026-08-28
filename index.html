@@ -62,7 +62,7 @@
     <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="header-left">
-        <div class="app-brand-badge" onclick="window.appController.switchView('launchpad')">
+        <div class="app-brand-badge" onclick="window.viewRouter.navigate('launchpad')">
           <img src="./icons/favicon.svg" alt="BD Careers" class="brand-logo-small">
           <span class="brand-title">BD Careers</span>
         </div>
@@ -219,23 +219,23 @@
 
         <!-- Pipeline Status Tabs -->
         <div class="pipeline-tabs">
-          <button class="pipeline-tab active" id="tab-all" onclick="window.appController.filterPipelineTab('all')">All</button>
-          <button class="pipeline-tab" id="tab-saved" onclick="window.appController.filterPipelineTab('saved')">📁 Saved</button>
-          <button class="pipeline-tab" id="tab-applied" onclick="window.appController.filterPipelineTab('applied')">📝 Applied</button>
-          <button class="pipeline-tab" id="tab-interview" onclick="window.appController.filterPipelineTab('interview')">💬 Interview</button>
-          <button class="pipeline-tab" id="tab-offer" onclick="window.appController.filterPipelineTab('offer')">🎉 Offer</button>
-          <button class="pipeline-tab" id="tab-archived" onclick="window.appController.filterPipelineTab('archived')">📦 Archived</button>
+          <button class="pipeline-tab active" id="tab-all" onclick="window.pipelineUI.setFilter('all')">All</button>
+          <button class="pipeline-tab" id="tab-saved" onclick="window.pipelineUI.setFilter('saved')">📁 Saved</button>
+          <button class="pipeline-tab" id="tab-applied" onclick="window.pipelineUI.setFilter('applied')">📝 Applied</button>
+          <button class="pipeline-tab" id="tab-interview" onclick="window.pipelineUI.setFilter('interview')">💬 Interview</button>
+          <button class="pipeline-tab" id="tab-offer" onclick="window.pipelineUI.setFilter('offer')">🎉 Offer</button>
+          <button class="pipeline-tab" id="tab-archived" onclick="window.pipelineUI.setFilter('archived')">📦 Archived</button>
         </div>
 
         <div id="bookmarks-list-container" class="bookmarks-list">
-          <!-- Populated by app.js -->
+          <!-- Populated by pipeline.js -->
         </div>
       </section>
     </main>
 
     <!-- iOS Bottom Navigation Dock -->
     <nav class="bottom-dock">
-      <button class="dock-btn active" id="dock-btn-home" onclick="window.appController.switchView('launchpad')">
+      <button class="dock-btn active" id="dock-btn-home" onclick="window.viewRouter.navigate('launchpad')">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         </svg>
@@ -250,7 +250,7 @@
         <span>Jobs</span>
       </button>
 
-      <button class="dock-btn" id="dock-btn-bookmarks" onclick="window.appController.switchView('bookmarks')">
+      <button class="dock-btn" id="dock-btn-bookmarks" onclick="window.viewRouter.navigate('bookmarks')">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
@@ -367,7 +367,7 @@
       </div>
 
       <p class="form-hint" style="text-align: center;">
-        BD Career Hub PWA v1.1.0 • Open Source iOS Client
+        BD Career Hub PWA v1.2.0 • Open Source iOS Client
       </p>
     </div>
   </div>
@@ -430,7 +430,16 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Modular Scripts Architecture -->
+  <script src="./js/core/event-bus.js"></script>
+  <script src="./js/core/store.js"></script>
+  <script src="./js/services/storage.service.js"></script>
+  <script src="./js/services/crypto.service.js"></script>
+  <script src="./js/services/passkey.service.js"></script>
+  <script src="./js/services/auth-bridge.service.js"></script>
+  <script src="./js/ui/notifications.js"></script>
+  <script src="./js/ui/router.js"></script>
+  <script src="./js/ui/pipeline.js"></script>
   <script src="./js/passkey.js"></script>
   <script src="./js/auth-bridge.js"></script>
   <script src="./js/app.js"></script>
@@ -477,7 +486,7 @@
       const settings = window.passkeyManager.getSettings();
       settings.autoLockMinutes = parseInt(val, 10);
       window.passkeyManager.saveSettings(settings);
-      window.bdjobsAuthBridge?.showToast('Auto-lock timer updated', 'info');
+      window.notificationEngine.show('Auto-lock timer updated', 'info');
     }
 
     async function toggleAppLock() {
@@ -489,14 +498,14 @@
           }
           settings.appLockEnabled = true;
           window.passkeyManager.saveSettings(settings);
-          window.bdjobsAuthBridge?.showToast('App Lock enabled with Face ID', 'success');
+          window.notificationEngine.show('App Lock enabled with Face ID', 'success');
         } catch (e) {
-          window.bdjobsAuthBridge?.showToast('Failed to enable Face ID Lock', 'error');
+          window.notificationEngine.show('Failed to enable Face ID Lock', 'error');
         }
       } else {
         settings.appLockEnabled = false;
         window.passkeyManager.saveSettings(settings);
-        window.bdjobsAuthBridge?.showToast('App Lock disabled', 'info');
+        window.notificationEngine.show('App Lock disabled', 'info');
       }
       updateSettingsUI();
     }
@@ -505,7 +514,7 @@
       const pin = prompt('Enter a 4 to 6-digit security PIN for Face ID backup:');
       if (pin && pin.length >= 4) {
         await window.passkeyManager.setSecurityPIN(pin);
-        window.bdjobsAuthBridge?.showToast('Security PIN configured successfully', 'success');
+        window.notificationEngine.show('Security PIN configured successfully', 'success');
       }
     }
 
@@ -520,10 +529,10 @@
       try {
         const result = await window.passkeyManager.authenticatePasskey('Test Face ID / Passkey');
         if (result.success) {
-          window.bdjobsAuthBridge?.showToast('🎉 Face ID verification successful!', 'success');
+          window.notificationEngine.show('🎉 Face ID verification successful!', 'success');
         }
       } catch (e) {
-        window.bdjobsAuthBridge?.showToast(e.message || 'Verification cancelled', 'error');
+        window.notificationEngine.show(e.message || 'Verification cancelled', 'error');
       }
     }
 
